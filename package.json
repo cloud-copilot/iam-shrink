@@ -1,10 +1,12 @@
 {
   "name": "@cloud-copilot/iam-shrink",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Shrink IAM Policies",
   "scripts": {
     "build": "npx tsc -p tsconfig.cjs.json && npx tsc -p tsconfig.esm.json && ./postbuild.sh",
-    "test": "npx vitest --run --coverage"
+    "clean": "rm -rf dist",
+    "test": "npx vitest --run --coverage",
+    "release": "npm run clean && npm run build && npm run test && npm publish"
   },
   "repository": {
     "type": "git",
@@ -22,7 +24,9 @@
   },
   "keywords": [
     "AWS",
-    "IAM"
+    "IAM",
+    "IAM Policy Size",
+    "IAM Policy Optimization"
   ],
   "author": "David Kerber <dave@cloudcopilot.io>",
   "license": "GPL-3.0-or-later",
@@ -37,7 +41,7 @@
     "vitest": "^2.0.5"
   },
   "peerDependencies": {
-    "@cloud-copilot/iam-data": ">=0.5.0 <1.0.0",
-    "@cloud-copilot/iam-expand": ">=0.2.0 <1.0.0"
+    "@cloud-copilot/iam-data": ">=0.7.0 <1.0.0",
+    "@cloud-copilot/iam-expand": ">=0.6.0 <1.0.0"
   }
 }
