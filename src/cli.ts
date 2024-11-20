@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { iamDataUpdatedAt, iamDataVersion } from "@cloud-copilot/iam-data"
 import { convertOptions, parseStdIn } from "./cli_utils.js"
 import { shrink, ShrinkOptions } from "./shrink.js"
