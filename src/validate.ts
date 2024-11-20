@@ -11,7 +11,7 @@ import { expandIamActions } from "@cloud-copilot/iam-expand";
  */
 export async function validateShrinkResults(desiredActions: string[], patterns: string[]): Promise<string | undefined> {
   const desiredActionSet = new Set(desiredActions);
-  const expandedAfterActions = await expandIamActions(patterns, {expandServiceAsterisk: true});
+  const expandedAfterActions = await expandIamActions(patterns);
   const expandedAfterActionSet = new Set(expandedAfterActions);
   for(const afterAction of expandedAfterActions) {
     if(!desiredActionSet.has(afterAction)) {

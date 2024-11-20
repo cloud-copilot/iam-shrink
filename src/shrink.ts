@@ -31,14 +31,14 @@ export async function shrink(desiredPatterns: string[], shrinkOptions?: Partial<
   }
 
   const options = {...defaultOptions, ...shrinkOptions}
-  const targetActions = await expandIamActions(desiredPatterns, {expandServiceAsterisk: true})
+  const targetActions = await expandIamActions(desiredPatterns)
   const expandedActionsByService = groupActionsByService(targetActions);
   const services = Array.from(expandedActionsByService.keys()).sort();
 
   const reducedActions: string[] = [];
   for(const service of services) {
     const desiredActions = expandedActionsByService.get(service)!
-    const possibleActions = mapActions(await expandIamActions(`${service}:*`, {expandServiceAsterisk: true}))
+    const possibleActions = mapActions(await expandIamActions(`${service}:*`))
     const reducedServiceActions = shrinkResolvedList(desiredActions.withoutService, possibleActions, options.iterations)
 
     //Validation
