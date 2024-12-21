@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { iamDataUpdatedAt, iamDataVersion } from "@cloud-copilot/iam-data"
-import { convertOptions, parseStdIn } from "./cli_utils.js"
-import { shrink, ShrinkOptions } from "./shrink.js"
+import { iamDataUpdatedAt, iamDataVersion } from '@cloud-copilot/iam-data'
+import { convertOptions, parseStdIn } from './cli_utils.js'
+import { shrink, ShrinkOptions } from './shrink.js'
 
 const commandName = 'iam-shrink'
 const dataPackage = '@cloud-copilot/iam-data'
@@ -19,6 +19,7 @@ async function shrinkAandPrint(actions: string[], shrinkOptions: Partial<ShrinkO
   }
 }
 
+// prettier-ignore
 function printUsage() {
   console.log('No arguments provided or input from stdin')
   console.log('Usage:')
@@ -35,12 +36,12 @@ function printUsage() {
   process.exit(1)
 }
 
-const args = process.argv.slice(2); // Ignore the first two elements
+const args = process.argv.slice(2) // Ignore the first two elements
 const actionStrings: string[] = []
 const optionStrings: string[] = []
 
 for (const arg of args) {
-  if(arg.startsWith('--')) {
+  if (arg.startsWith('--')) {
     optionStrings.push(arg)
   } else {
     actionStrings.push(arg)
@@ -49,7 +50,7 @@ for (const arg of args) {
 
 async function run() {
   const options = convertOptions(optionStrings)
-  if(options.showDataVersion) {
+  if (options.showDataVersion) {
     const version = await iamDataVersion()
     console.log(`${dataPackage} version: ${version}`)
     console.log(`Data last updated: ${await iamDataUpdatedAt()}`)
@@ -59,10 +60,10 @@ async function run() {
     return
   }
 
-  if(actionStrings.length === 0) {
+  if (actionStrings.length === 0) {
     //If no actions are provided, read from stdin
     const stdInResult = await parseStdIn(options)
-    if(stdInResult.object) {
+    if (stdInResult.object) {
       console.log(JSON.stringify(stdInResult.object, null, 2))
       return
     } else if (stdInResult.strings) {
@@ -70,16 +71,18 @@ async function run() {
     }
   }
 
-  if(actionStrings.length > 0) {
+  if (actionStrings.length > 0) {
     await shrinkAandPrint(actionStrings, options)
     return
   }
 
   printUsage()
-
 }
 
-run().catch((e) => {
-  console.error(e)
-  process.exit(1)
-}).then(() => {}).finally(() => {})
+run()
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+  .then(() => {})
+  .finally(() => {})

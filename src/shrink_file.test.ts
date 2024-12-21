@@ -1,7 +1,7 @@
-import { beforeEach } from "node:test";
-import { describe, expect, it, vi } from "vitest";
-import { shrink } from './shrink.js';
-import { shrinkJsonDocument } from "./shrink_file.js";
+import { beforeEach } from 'node:test'
+import { describe, expect, it, vi } from 'vitest'
+import { shrink } from './shrink.js'
+import { shrinkJsonDocument } from './shrink_file.js'
 
 vi.mock('./shrink.js')
 

@@ -6,7 +6,7 @@ const bugBaseUrl = 'https://github.com/cloud-copilot/iam-shrink/issues/new'
  * @returns the title of the bug report
  */
 function bugTitle(errorMatch: string) {
-  return `Bug: ShrinkValidationError. ${errorMatch}`;
+  return `Bug: ShrinkValidationError. ${errorMatch}`
 }
 
 /**
@@ -18,7 +18,7 @@ function bugTitle(errorMatch: string) {
  * @returns the body of the bug report
  */
 function bugBody(errorMatch: string, desiredPatterns: string[]) {
-  return `${errorMatch} while shrinking patterns ${JSON.stringify(desiredPatterns)}`;
+  return `${errorMatch} while shrinking patterns ${JSON.stringify(desiredPatterns)}`
 }
 
 /**
@@ -30,7 +30,7 @@ function bugBody(errorMatch: string, desiredPatterns: string[]) {
  * @returns the full url to create a new bug report
  */
 function bugUrl(desiredPatterns: string[], errorMatch: string) {
-  return `${bugBaseUrl}?labels=bug&title=${encodeURIComponent(bugTitle(errorMatch))}&body=${encodeURIComponent(bugBody(errorMatch, desiredPatterns))}`;
+  return `${bugBaseUrl}?labels=bug&title=${encodeURIComponent(bugTitle(errorMatch))}&body=${encodeURIComponent(bugBody(errorMatch, desiredPatterns))}`
 }
 
 export class ShrinkValidationError extends Error {
@@ -41,12 +41,16 @@ export class ShrinkValidationError extends Error {
    * @param excludedPatterns the patterns the user wanted to exclude
    * @param errorMatch the undesired match that triggered the bug
    */
-  constructor(public readonly desiredPatterns: string[], public readonly errorMatch: string) {
-    super([
-      `@cloud-copilot/iam-shrink has failed validation and this is a bug.`,
-      `Please file a bug at ${bugUrl(desiredPatterns, errorMatch)}`,
-    ].join("\n"));
-    this.name = "ShrinkValidationError"; // Set the name of the error
+  constructor(
+    public readonly desiredPatterns: string[],
+    public readonly errorMatch: string
+  ) {
+    super(
+      [
+        `@cloud-copilot/iam-shrink has failed validation and this is a bug.`,
+        `Please file a bug at ${bugUrl(desiredPatterns, errorMatch)}`
+      ].join('\n')
+    )
+    this.name = 'ShrinkValidationError' // Set the name of the error
   }
 }
-
