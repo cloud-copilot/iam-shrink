@@ -38,8 +38,15 @@
   "homepage": "https://github.com/cloud-copilot/iam-shrink#readme",
   "devDependencies": {
     "@cloud-copilot/prettier-config": "^0.1.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/node": "^22.5.0",
     "@vitest/coverage-v8": "^2.0.5",
+    "semantic-release": "^24.2.1",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   },
@@ -102,5 +109,8 @@
         }
       ]
     ]
+  },
+  "dependencies": {
+    "@cloud-copilot/cli": "^0.1.13"
   }
 }
