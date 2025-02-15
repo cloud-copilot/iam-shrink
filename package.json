@@ -31,7 +31,7 @@
     "IAM Policy Optimization"
   ],
   "author": "David Kerber <dave@cloudcopilot.io>",
-  "license": "GPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/cloud-copilot/iam-shrink/issues"
   },
@@ -47,5 +47,60 @@
     "@cloud-copilot/iam-data": ">=0.7.0 <1.0.0",
     "@cloud-copilot/iam-expand": ">=0.6.0 <1.0.0"
   },
-  "prettier": "@cloud-copilot/prettier-config"
+  "prettier": "@cloud-copilot/prettier-config",
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "releaseRules": [
+            {
+              "type": "feat",
+              "release": "patch"
+            },
+            {
+              "type": "fix",
+              "release": "patch"
+            },
+            {
+              "breaking": true,
+              "release": "patch"
+            },
+            {
+              "type": "*",
+              "release": "patch"
+            }
+          ]
+        }
+      ],
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": true
+        }
+      ],
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json",
+            "package-lock.json",
+            "CHANGELOG.md"
+          ],
+          "message": "chore(release): ${nextRelease.version} [skip ci]"
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "assets": []
+        }
+      ]
+    ]
+  }
 }
