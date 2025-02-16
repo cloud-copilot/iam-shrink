@@ -1,12 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  convertOptions,
-  dashToCamelCase,
-  extractActionsFromLineOfInput,
-  parseStdIn
-} from './cli_utils'
-import { readStdin } from './stdin'
-vi.mock('./stdin')
+import { extractActionsFromLineOfInput, parseStdIn } from './cli_utils'
+
+import { readStdin } from '@cloud-copilot/cli'
+vi.mock('@cloud-copilot/cli')
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -26,11 +22,6 @@ const extractScenarios = [
   { input: 'hamburger', expected: [] }
 ]
 
-const dashToCamelCaseScenarios = [
-  { input: '--iterations', expected: 'iterations' },
-  { input: '--show-data-version', expected: 'showDataVersion' }
-]
-
 describe('cli_utils', () => {
   describe('extractActionsFromLineOfInput', () => {
     extractScenarios.forEach((scenario, index) => {
@@ -43,39 +34,6 @@ describe('cli_utils', () => {
 
         // Then I should get the expected result
         expect(result).toEqual(scenario.expected)
-      })
-    })
-  })
-
-  describe('dashToCamelCase', () => {
-    dashToCamelCaseScenarios.forEach((scenario, index) => {
-      it(`should return for scenario ${index}: ${scenario.input} `, () => {
-        // Given the input
-        const input = scenario.input
-
-        // When the input is converted
-        const result = dashToCamelCase(input)
-
-        // Then I should get the expected result
-        expect(result).toEqual(scenario.expected)
-      })
-    })
-  })
-
-  describe('convertOptions', () => {
-    it('should convert the options to keys on an object', () => {
-      // Given options as an array of strings
-      const optionArgs = ['--distinct', '--sort', '--something-cool', '--key-with-value=10']
-
-      // When the options are converted
-      const result = convertOptions(optionArgs)
-
-      // Then each option should be a key on the object
-      expect(result).toEqual({
-        distinct: true,
-        sort: true,
-        somethingCool: true,
-        keyWithValue: '10'
       })
     })
   })
