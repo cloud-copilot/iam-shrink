@@ -151,19 +151,19 @@ cat readonly.json | iam-shrink | wc -m
 # 61305 characters
 
 # Increasing iterations
-cat readonly.json | iam-shrink --iterations=3 | wc -m
+cat readonly.json | iam-shrink --iterations 3 | wc -m
 # 45983 characters
-cat readonly.json | iam-shrink --iterations=4 | wc -m
+cat readonly.json | iam-shrink --iterations 4 | wc -m
 # 43654 characters
-cat readonly.json | iam-shrink --iterations=5 | wc -m
+cat readonly.json | iam-shrink --iterations 5 | wc -m
 # 43336 characters
 
 # Unlimited iterations until the policy cannot be further reduced
-cat readonly.json | iam-shrink --iterations=0 | wc -m
+cat readonly.json | iam-shrink --iterations 0 | wc -m
 # 43281 characters
 ````
 
-If you want to shrink the policy as much as possible, you can use `--iterations=0`. This will keep shrinking the policy until it can't be reduced any further.
+If you want to shrink the policy as much as possible, you can use `--iterations 0`. This will keep shrinking the policy until it can't be reduced any further.
 
 ## Use in TypeScript/Node
 
