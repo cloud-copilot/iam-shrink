@@ -38,7 +38,7 @@ async function run() {
       showDataVersion: {
         character: 'v',
         description: 'Print the version of the iam-data package being used and exit',
-        values: 'none'
+        type: 'boolean'
       }
     },
     {
