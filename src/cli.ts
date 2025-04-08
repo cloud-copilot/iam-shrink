@@ -26,7 +26,7 @@ async function run() {
     {
       removeSids: {
         type: 'boolean',
-        description: 'Remove Sids the policy statements',
+        description: 'Remove Sid fields from the policy statements',
         character: 's'
       },
       removeWhitespace: {
