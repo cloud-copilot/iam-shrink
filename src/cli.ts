@@ -29,6 +29,11 @@ async function run() {
         description: 'Remove Sids the policy statements',
         character: 's'
       },
+      removeWhitespace: {
+        type: 'boolean',
+        description: 'Remove whitespace from the policy output',
+        character: 'w'
+      },
       iterations: {
         type: 'number',
         description:
@@ -73,7 +78,8 @@ async function run() {
     //If no actions are provided, read from stdin
     const stdInResult = await parseStdIn(shrinkArgs)
     if (stdInResult.object) {
-      console.log(JSON.stringify(stdInResult.object, null, 2))
+      const spaces = shrinkArgs.removeWhitespace ? 0 : 2
+      console.log(JSON.stringify(stdInResult.object, null, spaces))
       return
     } else if (stdInResult.strings) {
       actionStrings.push(...stdInResult.strings)
