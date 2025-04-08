@@ -1,3 +1,11 @@
+## [0.1.8](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.7...v0.1.8) (2025-04-08)
+
+
+### Features
+
+* Add cli option to eliminate whitespace form output. ([cd13dc8](https://github.com/cloud-copilot/iam-shrink/commit/cd13dc89b5ad7dcb0db0cc3ac60289695e494256))
+* Add option to remove Sids from policy documents. ([45d7086](https://github.com/cloud-copilot/iam-shrink/commit/45d7086eee71fee38f87edccad9da9273a6ecaf8))
+
 ## [0.1.7](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.6...v0.1.7) (2025-04-05)
 
 ## [0.1.6](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.5...v0.1.6) (2025-03-19)
