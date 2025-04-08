@@ -165,6 +165,11 @@ cat readonly.json | iam-shrink --iterations 0 | wc -m
 
 If you want to shrink the policy as much as possible, you can use `--iterations 0`. This will keep shrinking the policy until it can't be reduced any further.
 
+## Other CLI Options
+
+- `--remove-sids`: Remove all `Sid` fields from the policy.
+- `--remove-whitespace`: Remove all whitespace from the output.
+
 ## Use in TypeScript/Node
 
 You can use the shrink function in your own code.
