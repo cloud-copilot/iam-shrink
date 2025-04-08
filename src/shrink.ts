@@ -4,10 +4,12 @@ import { validateShrinkResults } from './validate.js'
 
 export interface ShrinkOptions {
   iterations: number
+  removeSids: boolean
 }
 
 const defaultOptions: ShrinkOptions = {
-  iterations: 2
+  iterations: 2,
+  removeSids: false
 }
 
 /**
