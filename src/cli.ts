@@ -24,6 +24,11 @@ async function run() {
     'iam-shrink',
     {},
     {
+      removeSids: {
+        type: 'boolean',
+        description: 'Remove Sids the policy statements',
+        character: 's'
+      },
       iterations: {
         type: 'number',
         description:

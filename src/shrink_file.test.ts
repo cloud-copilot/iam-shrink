@@ -69,4 +69,67 @@ describe('shrinkJsonDocument', () => {
       Action: 's3:GetObject'
     })
   })
+
+  it('Should remove SIDs when requested', async () => {
+    //Given a JSON document with SIDs
+    const document = {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Sid: 'AllowS3Read',
+          Action: ['s3:GetObject'],
+          Resource: 'arn:aws:s3:::my_bucket'
+        }
+      ]
+    }
+
+    //And a new array of actions is returned
+    vi.mocked(shrink).mockResolvedValue(['s3:*'])
+
+    //When shrinkJsonDocument is called with removeSids option
+    const result = await shrinkJsonDocument({ removeSids: true }, document)
+
+    //Then the SIDs are removed from the document
+    expect(result).toEqual({
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Action: ['s3:*'],
+          Resource: 'arn:aws:s3:::my_bucket'
+        }
+      ]
+    })
+  })
+
+  it('should leave sids in place when removeSids is false', async () => {
+    //Given a JSON document with SIDs
+    const document = {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Sid: 'AllowS3Read',
+          Action: ['s3:GetObject'],
+          Resource: 'arn:aws:s3:::my_bucket'
+        }
+      ]
+    }
+
+    //And a new array of actions is returned
+    vi.mocked(shrink).mockResolvedValue(['s3:*'])
+
+    //When shrinkJsonDocument is called without removeSids option
+    const result = await shrinkJsonDocument({}, document)
+
+    //Then the SIDs are left in place
+    expect(result).toEqual({
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Sid: 'AllowS3Read',
+          Action: ['s3:*'],
+          Resource: 'arn:aws:s3:::my_bucket'
+        }
+      ]
+    })
+  })
 })

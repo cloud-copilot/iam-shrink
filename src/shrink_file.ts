@@ -34,6 +34,9 @@ export async function shrinkJsonDocument(
   if (typeof document === 'object' && document !== null) {
     for (const key of Object.keys(document)) {
       document[key] = await shrinkJsonDocument(options, document[key], key)
+      if (key === 'Sid' && typeof document[key] === 'string' && options.removeSids) {
+        delete document[key]
+      }
     }
     return document
   }
