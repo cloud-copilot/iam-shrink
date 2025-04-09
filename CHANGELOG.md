@@ -1,3 +1,10 @@
+## [0.1.9](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.8...v0.1.9) (2025-04-09)
+
+
+### Features
+
+* Add the ability to specify what access levels should be reduced. ([af2c090](https://github.com/cloud-copilot/iam-shrink/commit/af2c0909ffdd974de576e7c35320b93ebbc92760))
+
 ## [0.1.8](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.7...v0.1.8) (2025-04-08)
 
 
