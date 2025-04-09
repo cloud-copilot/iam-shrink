@@ -476,7 +476,7 @@ function optionAccessLevelForDataAccessLevel(
  * @param service the service the actions belong to
  * @param actions the list of actions to filter
  * @param reducibleAccessLevels the set of ActionAccessLevel values that are considered reducible
- * @returns an object with two arrays: reduceableActions and unreduceableActions
+ * @returns an object with two arrays: reducibleActions and unreducibleActions
  */
 
 async function filterActionsByAccessLevel(
