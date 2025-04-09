@@ -78,7 +78,7 @@ export async function shrink(
     )
 
     const reducedServiceActions = shrinkResolvedList(
-      filteredActions.reduceableActions,
+      filteredActions.reducibleActions,
       possibleActions,
       options.iterations
     )
@@ -86,7 +86,7 @@ export async function shrink(
     //Validation
     const reducedServiceActionsWithService = [
       ...reducedServiceActions.map((action) => `${service}:${action}`),
-      ...filteredActions.unreduceableActions.map((action) => `${service}:${action}`)
+      ...filteredActions.unreducibleActions.map((action) => `${service}:${action}`)
     ].sort()
 
     const invalidMatch = await validateShrinkResults(
@@ -483,13 +483,13 @@ async function filterActionsByAccessLevel(
   service: string,
   actions: string[],
   reducibleAccessLevels: Set<ActionAccessLevel>
-): Promise<{ reduceableActions: string[]; unreduceableActions: string[] }> {
+): Promise<{ reducibleActions: string[]; unreducibleActions: string[] }> {
   if (isAllAccessLevels(reducibleAccessLevels)) {
-    return { reduceableActions: actions, unreduceableActions: [] }
+    return { reducibleActions: actions, unreducibleActions: [] }
   }
 
-  const reduceableActions: string[] = []
-  const unreduceableActions: string[] = []
+  const reducibleActions: string[] = []
+  const unreducibleActions: string[] = []
 
   for (const action of actions) {
     const details = await iamActionDetails(service, action)
@@ -497,13 +497,13 @@ async function filterActionsByAccessLevel(
       details.accessLevel as ActionDataAccessLevel
     )
     if (reducibleAccessLevels.has(accessLevel)) {
-      reduceableActions.push(action)
+      reducibleActions.push(action)
     } else {
-      unreduceableActions.push(action)
+      unreducibleActions.push(action)
     }
   }
 
-  return { reduceableActions, unreduceableActions }
+  return { reducibleActions, unreducibleActions }
 }
 
 /**
