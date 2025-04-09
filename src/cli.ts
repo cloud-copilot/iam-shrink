@@ -3,7 +3,7 @@
 import { parseCliArguments } from '@cloud-copilot/cli'
 import { iamDataUpdatedAt, iamDataVersion } from '@cloud-copilot/iam-data'
 import { convertNumberOfIterations, parseStdIn } from './cli_utils.js'
-import { shrink, ShrinkOptions } from './shrink.js'
+import { allActionAccessLevels, shrink, ShrinkOptions } from './shrink.js'
 
 const dataPackage = '@cloud-copilot/iam-data'
 
@@ -39,6 +39,12 @@ async function run() {
         description:
           'How many iterations of shrinking should be executed, defaults to 2; zero or less means no limit',
         values: 'single'
+      },
+      levels: {
+        type: 'enum',
+        description: 'The access levels to reduce in the policy, defaults to all levels',
+        values: 'multiple',
+        validValues: allActionAccessLevels
       },
       readWaitMs: {
         description: 'Milliseconds to wait for the first byte from stdin before timing out',

@@ -1,15 +1,37 @@
+import { iamActionDetails } from '@cloud-copilot/iam-data'
 import { expandIamActions } from '@cloud-copilot/iam-expand'
 import { ShrinkValidationError } from './errors.js'
 import { validateShrinkResults } from './validate.js'
 
+export type ActionAccessLevel = 'read' | 'write' | 'list' | 'tagging' | 'permissions'
+export const allActionAccessLevels: ActionAccessLevel[] = [
+  'read',
+  'write',
+  'list',
+  'tagging',
+  'permissions'
+]
+
+type ActionDataAccessLevel = 'Read' | 'Write' | 'List' | 'Tagging' | 'Permissions management'
+
+const actionLevelMap: Record<ActionDataAccessLevel, ActionAccessLevel> = {
+  Read: 'read',
+  Write: 'write',
+  List: 'list',
+  Tagging: 'tagging',
+  'Permissions management': 'permissions'
+}
+
 export interface ShrinkOptions {
   iterations: number
   removeSids: boolean
+  levels: ActionAccessLevel[]
 }
 
 const defaultOptions: ShrinkOptions = {
   iterations: 2,
-  removeSids: false
+  removeSids: false,
+  levels: allActionAccessLevels
 }
 
 /**
@@ -30,12 +52,17 @@ export async function shrink(
   shrinkOptions?: Partial<ShrinkOptions>
 ): Promise<string[]> {
   //Check for an all actions wildcard
+  const options = { ...defaultOptions, ...shrinkOptions }
+  if (options.levels.length === 0) {
+    options.levels = allActionAccessLevels
+  }
+  const reducibleAccessLevelsSet = new Set(options.levels)
+
   const wildCard = desiredPatterns.find((pattern) => collapseAsterisks(pattern) === '*')
-  if (wildCard) {
+  if (wildCard && isAllAccessLevels(reducibleAccessLevelsSet)) {
     return ['*']
   }
 
-  const options = { ...defaultOptions, ...shrinkOptions }
   const targetActions = await expandIamActions(desiredPatterns)
   const expandedActionsByService = groupActionsByService(targetActions)
   const services = Array.from(expandedActionsByService.keys()).sort()
@@ -44,16 +71,24 @@ export async function shrink(
   for (const service of services) {
     const desiredActions = expandedActionsByService.get(service)!
     const possibleActions = mapActions(await expandIamActions(`${service}:*`))
-    const reducedServiceActions = shrinkResolvedList(
+    const filteredActions = await filterActionsByAccessLevel(
+      service,
       desiredActions.withoutService,
+      reducibleAccessLevelsSet
+    )
+
+    const reducedServiceActions = shrinkResolvedList(
+      filteredActions.reduceableActions,
       possibleActions,
       options.iterations
     )
 
     //Validation
-    const reducedServiceActionsWithService = reducedServiceActions.map(
-      (action) => `${service}:${action}`
-    )
+    const reducedServiceActionsWithService = [
+      ...reducedServiceActions.map((action) => `${service}:${action}`),
+      ...filteredActions.unreduceableActions.map((action) => `${service}:${action}`)
+    ].sort()
+
     const invalidMatch = await validateShrinkResults(
       desiredActions.withService,
       reducedServiceActionsWithService
@@ -416,4 +451,70 @@ export function consolidateWildcardPatterns(patterns: string[]): string[] {
 function matchesPattern(general: string, specific: string): boolean {
   const regex = new RegExp('^' + general.replace(/\*/g, '.*') + '$')
   return regex.test(specific)
+}
+
+/**
+ * Get the ActionAccessLevel option value for a given ActionDataAccessLevel
+ *
+ * @param accessLevel the ActionDataAccessLevel to convert
+ * @returns the corresponding ActionAccessLevel
+ * @throws if the access level is not recognized
+ */
+function optionAccessLevelForDataAccessLevel(
+  accessLevel: ActionDataAccessLevel
+): ActionAccessLevel {
+  const result = actionLevelMap[accessLevel]
+  if (result) {
+    return result
+  }
+  throw new Error(`Unknown access level: ${accessLevel}`)
+}
+
+/**
+ * Filter actions into reducable and unreduceable based on the provided access levels
+ *
+ * @param service the service the actions belong to
+ * @param actions the list of actions to filter
+ * @param reducibleAccessLevels the set of ActionAccessLevel values that are considered reducible
+ * @returns an object with two arrays: reduceableActions and unreduceableActions
+ */
+
+async function filterActionsByAccessLevel(
+  service: string,
+  actions: string[],
+  reducibleAccessLevels: Set<ActionAccessLevel>
+): Promise<{ reduceableActions: string[]; unreduceableActions: string[] }> {
+  if (isAllAccessLevels(reducibleAccessLevels)) {
+    return { reduceableActions: actions, unreduceableActions: [] }
+  }
+
+  const reduceableActions: string[] = []
+  const unreduceableActions: string[] = []
+
+  for (const action of actions) {
+    const details = await iamActionDetails(service, action)
+    const accessLevel = optionAccessLevelForDataAccessLevel(
+      details.accessLevel as ActionDataAccessLevel
+    )
+    if (reducibleAccessLevels.has(accessLevel)) {
+      reduceableActions.push(action)
+    } else {
+      unreduceableActions.push(action)
+    }
+  }
+
+  return { reduceableActions, unreduceableActions }
+}
+
+/**
+ * Check if all access levels are included in the set
+ *
+ * @param accessLevels the set of ActionAccessLevel values to check
+ * @returns true if all access levels are included
+ */
+export function isAllAccessLevels(accessLevels: Set<ActionAccessLevel>): boolean {
+  return (
+    accessLevels.size >= allActionAccessLevels.length &&
+    !allActionAccessLevels.find((level) => !accessLevels.has(level))
+  )
 }
