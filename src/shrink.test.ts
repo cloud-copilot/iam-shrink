@@ -1,11 +1,14 @@
+import { iamActionDetails } from '@cloud-copilot/iam-data'
 import { expandIamActions } from '@cloud-copilot/iam-expand'
 import { beforeEach } from 'node:test'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  ActionAccessLevel,
   consolidateWildcardPatterns,
   countSubstrings,
   findCommonSequences,
   groupActionsByService,
+  isAllAccessLevels,
   mapActions,
   reduceAction,
   regexForWildcardAction,
@@ -18,10 +21,12 @@ import {
 import { validateShrinkResults } from './validate.js'
 
 vi.mock('@cloud-copilot/iam-expand')
+vi.mock('@cloud-copilot/iam-data')
 vi.mock('./validate.js')
 
 const mockExpandIamActions = vi.mocked(expandIamActions)
 const mockValidateShrinkResults = vi.mocked(validateShrinkResults)
+const mockIamActionDetails = vi.mocked(iamActionDetails)
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -542,10 +547,10 @@ describe('shrink.ts', () => {
       })
 
       //When shrink is called
-      const result = await shrink(actions, {})
+      const result = await shrink(actions, { levels: [] })
 
       //Then we should get the reduced actions
-      expect(result).toEqual(['s3:Get*VersionAcl', 's3:*Tagging'])
+      expect(result).toEqual(['s3:Get*VersionAcl', 's3:*Tagging'].sort())
     })
 
     it('should throw an error if the shrink does not validate', async () => {
@@ -569,7 +574,7 @@ describe('shrink.ts', () => {
       )
     })
 
-    it('should return an all actions wildcard if one is provided', async () => {
+    it('should return an all actions wildcard if one is provided and all accessLevels are reducible', async () => {
       //Given a list of actions that includes a global wildcard
       const actions = ['*', 's3:GetObjectTagging', 's3:PutObjectTagging']
 
@@ -578,6 +583,24 @@ describe('shrink.ts', () => {
 
       //Then we should get back the single wildcard
       expect(result).toEqual(['*'])
+    })
+
+    it('should not return an all actions wildcard if one is provided and all accessLevels are reducible', async () => {
+      //Given a list of actions that includes a global wildcard
+      const actions = ['*', 's3:GetObjectTagging', 's3:PutObjectTagging']
+
+      mockIamActionDetails.mockImplementation(async (service: string, action: string) => {
+        if (action.startsWith('Get')) {
+          return { accessLevel: 'Read' }
+        }
+        return { accessLevel: 'Permissions management' } as any
+      })
+
+      //When shrink is called
+      const result = await shrink(actions, { levels: ['read'] })
+
+      //Then we should get back the single wildcard
+      expect(result.length > 1).toBe(true)
     })
 
     it('should return an all actions wildcard if a string of multiple asterisks is included', async () => {
@@ -589,6 +612,117 @@ describe('shrink.ts', () => {
 
       //Then we should get back the single wildcard
       expect(result).toEqual(['*'])
+    })
+
+    it('should only reduce actions for the specified access types', async () => {
+      //Given a list of actions
+      const actions = [
+        's3:GetObjectTagging',
+        's3:GetObject',
+        's3:GetObjectVersionAcl',
+        's3:GetObjectVersions',
+        's3:PutObjectTagging',
+        's3:PutObject',
+        's3:PutObjectVersionAcl',
+        's3:PutObjectVersions',
+        's3:GetBucketTagging',
+        's3:GetObjectVersionAcl',
+        's3:ListAllMyBuckets',
+        's3:ListBucket',
+        's3:ListBucketVersions'
+      ]
+
+      mockIamActionDetails.mockImplementation(async (service: string, action: string) => {
+        if (action.startsWith('Get')) {
+          return { accessLevel: 'Read' }
+        }
+        if (action.startsWith('Put')) {
+          return { accessLevel: 'Write' }
+        }
+        if (action.startsWith('List')) {
+          return { accessLevel: 'List' }
+        }
+        return { accessLevel: 'other' } as any
+      })
+
+      //This makes everything in the list above valid
+      mockExpandIamActions.mockImplementation(async (actions: string | string[]) => {
+        return [actions].flat()
+      })
+
+      //When shrink is called with only Read access types
+      const result = await shrink(actions, { levels: ['list', 'read'] })
+
+      //Then we should get the reduced actions for Read and List access types
+      expect(result).toEqual(
+        [
+          's3:Get*',
+          's3:List*',
+          's3:PutObject',
+          's3:PutObjectTagging',
+          's3:PutObjectVersionAcl',
+          's3:PutObjectVersions'
+        ].sort()
+      )
+    })
+  })
+
+  describe('isAllAccessLevels', () => {
+    it('should return true if all access levels are reducible', async () => {
+      //Given a list of all access levels
+      const levels = new Set<ActionAccessLevel>(['read', 'write', 'list', 'permissions', 'tagging'])
+
+      //When we check if all access levels are reducible
+      const result = isAllAccessLevels(levels)
+
+      //Then we should get true
+      expect(result).toBe(true)
+    })
+
+    it('should return false if one is missing', async () => {
+      //Given a list of all access levels
+      const levels = new Set<ActionAccessLevel>(['read', 'write', 'list', 'permissions'])
+
+      //When we check if all access levels are reducible
+      const result = isAllAccessLevels(levels)
+
+      //Then we should get true
+      expect(result).toBe(false)
+    })
+
+    it('should return false if one is missing but a fake one is added', async () => {
+      //Given a list of all access levels
+      const levels = new Set<ActionAccessLevel>([
+        'read',
+        'write',
+        'list',
+        'permissions',
+        'fake'
+      ] as any)
+
+      //When we check if all access levels are reducible
+      const result = isAllAccessLevels(levels)
+
+      //Then we should get true
+      expect(result).toBe(false)
+    })
+
+    it('should return true all are present but there is an extra value', async () => {
+      //Given a list of all access levels
+      const levels = new Set<ActionAccessLevel>([
+        'read',
+        'write',
+        'list',
+        'permissions',
+        'tagging',
+        'fake'
+      ] as any)
+
+      //When we check if all access levels are reducible
+      const result = isAllAccessLevels(levels)
+
+      //Then we should get true
+      expect(result).toBe(true)
     })
   })
 })

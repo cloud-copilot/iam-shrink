@@ -165,6 +165,27 @@ cat readonly.json | iam-shrink --iterations 0 | wc -m
 
 If you want to shrink the policy as much as possible, you can use `--iterations 0`. This will keep shrinking the policy until it can't be reduced any further.
 
+## Specify Access Levels
+
+AWS has [Access Levels](https://docs.aws.amazon.com/service-authorization/latest/reference/reference_policies_actions-resources-contextkeys.html#actions_table) that are assigned to all permissions in IAM. They are:
+
+- `List`
+- `Read`
+- `Write`
+- `Tagging`
+- `Permissions management`
+
+By default iam-shrink will shrink all actions regardless of their access level. You can specify a list of access levels using the `--levels` argument to shrink only those actions.
+
+```bash
+# Shrink all actions
+cat big-policy.json | iam-shrink
+
+# Shrink only Read, List, and Tagging actions. Write, and Permissions management actions will be included without any wildcards
+cat big-policy.json | iam-shrink --levels read list tagging
+
+```
+
 ## Other CLI Options
 
 - `--remove-sids`: Remove all `Sid` fields from the policy.
