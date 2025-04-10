@@ -52,7 +52,7 @@
   },
   "peerDependencies": {
     "@cloud-copilot/iam-data": ">=0.7.0 <1.0.0",
-    "@cloud-copilot/iam-expand": ">=0.6.0 <1.0.0"
+    "@cloud-copilot/iam-expand": ">=0.11.6 <1.0.0"
   },
   "prettier": "@cloud-copilot/prettier-config",
   "release": {
