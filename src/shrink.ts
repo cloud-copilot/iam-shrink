@@ -1,5 +1,5 @@
 import { iamActionDetails } from '@cloud-copilot/iam-data'
-import { expandIamActions } from '@cloud-copilot/iam-expand'
+import { actionMatchesPattern, expandIamActions, matchesAnyAction } from '@cloud-copilot/iam-expand'
 import { ShrinkValidationError } from './errors.js'
 import { validateShrinkResults } from './validate.js'
 
@@ -59,35 +59,64 @@ export async function shrink(
   const reducibleAccessLevelsSet = new Set(options.levels)
 
   const wildCard = desiredPatterns.find((pattern) => collapseAsterisks(pattern) === '*')
-  if (wildCard && isAllAccessLevels(reducibleAccessLevelsSet)) {
+  if (wildCard) {
     return ['*']
+  }
+
+  const patterns = []
+  for (const pattern of desiredPatterns) {
+    if (pattern.includes('*') || pattern.includes('?')) {
+      const matchesAnything = await matchesAnyAction(pattern)
+      if (matchesAnything) {
+        patterns.push(pattern)
+      }
+    }
   }
 
   const targetActions = await expandIamActions(desiredPatterns)
   const expandedActionsByService = groupActionsByService(targetActions)
+  const patternsByService = groupActionsByService(patterns)
   const services = Array.from(expandedActionsByService.keys()).sort()
 
   const reducedActions: string[] = []
   for (const service of services) {
     const desiredActions = expandedActionsByService.get(service)!
+    const desiredPatternsForService = patternsByService.get(service) || {
+      withService: [],
+      withoutService: []
+    }
+
+    //Every possible action
     const possibleActions = mapActions(await expandIamActions(`${service}:*`))
+
+    //Remove from the list of desired actions anything that matches a user defined pattern
+    const desiredActionsAfterPatterns = desiredActions.withoutService.filter((action) => {
+      return !desiredPatternsForService.withoutService.some((pattern) =>
+        actionMatchesPattern(action, pattern)
+      )
+    })
+
     const filteredActions = await filterActionsByAccessLevel(
       service,
-      desiredActions.withoutService,
+      desiredActionsAfterPatterns,
       reducibleAccessLevelsSet
     )
 
     const reducedServiceActions = shrinkResolvedList(
-      filteredActions.reducibleActions,
+      consolidateWildcardPatterns([
+        ...filteredActions.reducibleActions,
+        ...desiredPatternsForService.withoutService
+      ]),
       possibleActions,
+      new Set(desiredPatternsForService.withoutService),
       options.iterations
     )
 
     //Validation
-    const reducedServiceActionsWithService = [
+    const reducedServiceActionsWithService = consolidateWildcardPatterns([
       ...reducedServiceActions.map((action) => `${service}:${action}`),
       ...filteredActions.unreducibleActions.map((action) => `${service}:${action}`)
-    ].sort()
+    ]).sort()
 
     const invalidMatch = await validateShrinkResults(
       desiredActions.withService,
@@ -149,6 +178,7 @@ export function groupActionsByService(
 export function shrinkResolvedList(
   desiredActions: string[],
   possibleActions: string[],
+  actionsToNotShrink: Set<string>,
   iterations: number
 ): string[] {
   const desiredActionSet = new Set(desiredActions)
@@ -159,13 +189,13 @@ export function shrinkResolvedList(
     return ['*']
   }
 
-  // Iteratively shrink based on the most commmon sequence until we can't shrink anymore
+  // Iteratively shrink based on the most common sequence until we can't shrink anymore
   let previousActionListLength = desiredActions.length
   let actionList = desiredActions.slice()
 
   do {
     previousActionListLength = actionList.length
-    actionList = shrinkIteration(actionList, undesiredActions, false)
+    actionList = shrinkIteration(actionList, undesiredActions, actionsToNotShrink, false)
     iterations = iterations - 1
     if (iterations <= 0) {
       return actionList
@@ -175,7 +205,7 @@ export function shrinkResolvedList(
   // Iteratively shrink based on all common sequences until we can't shrink anymore
   do {
     previousActionListLength = actionList.length
-    actionList = shrinkIteration(actionList, undesiredActions, true)
+    actionList = shrinkIteration(actionList, undesiredActions, actionsToNotShrink, true)
     iterations = iterations - 1
     if (iterations <= 0) {
       return actionList
@@ -196,12 +226,15 @@ export function shrinkResolvedList(
 export function shrinkIteration(
   desiredActions: string[],
   undesiredActions: string[],
+  actionsToNotShrink: Set<string>,
   deep: boolean
 ): string[] {
   // Find all common words in the strings in the desiredActions array
-  const commonSequences = findCommonSequences(desiredActions).filter(
-    (sequence) => sequence.sequence != '*'
-  )
+  const commonSequences = findCommonSequences(
+    desiredActions.filter((a) => !actionsToNotShrink.has(a))
+    // desiredActions
+  ).filter((sequence) => sequence.sequence != '*')
+
   commonSequences.sort((a, b) => {
     return b.frequency - a.frequency
   })
@@ -223,7 +256,7 @@ export function shrinkIteration(
 }
 
 /**
- * Reduces a singele action into a smaller number of parts by replace one part at a time with an asterisk
+ * Reduces a single action into a smaller number of parts by replace one part at a time with an asterisk
  * and validating that there are no undesired actions that match the new action
  *
  * @param desiredAction the action to reduce
@@ -282,7 +315,7 @@ export function reduceAction(
       const tempString = collapseAsterisks(tempArray.join(''))
       const problemMatch = wildcardActionMatchesAnyString(tempString, undesiredActions)
       if (problemMatch) {
-        //This replacement cased a prolem match, so revert it before going backwards in the strings
+        //This replacement cased a problem match, so revert it before going backwards in the strings
         tempArray[i] = testArray[i]
         // Stopping here seems to work the best
         break
@@ -306,7 +339,7 @@ export function reduceAction(
 }
 
 /**
- * Consolidate multile consecutive asterisks into a single asterisk
+ * Consolidate multiple consecutive asterisks into a single asterisk
  *
  * @param wildcardAction the action to collapse
  * @returns the action with consecutive asterisks collapsed into a single asterisk
@@ -471,7 +504,7 @@ function optionAccessLevelForDataAccessLevel(
 }
 
 /**
- * Filter actions into reducable and unreduceable based on the provided access levels
+ * Filter actions into reducible and unreducible based on the provided access levels
  *
  * @param service the service the actions belong to
  * @param actions the list of actions to filter

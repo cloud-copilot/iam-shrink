@@ -18,6 +18,30 @@ IAM Actions are camel cased into a number of words. For example:
 
 IAM Shrink will only replace one word at a time and will never replace part of a word. So for instance `s3:GetObject` will never get shrunk to something like `s3:*et*`. This is to balance size reduction with readability.
 
+## Existing Wildcards
+
+If your input already contains wildcards, they will be preserved. For example:
+
+```bash
+cat "s3:Get*Tagging" | iam-shrink
+# Output
+s3:Get*Tagging
+```
+
+Existing wildcards will be removed under three conditions:
+
+1. If the wildcard does not match any actual actions and effectively does nothing. For instance if you input `s3:Get*NonExistentAction`, it will be removed.
+2. If the wildcard is redundant or can be replaced with a more general wildcard. For instance if you input `s3:GetObject*` and `s3:Get*`, only `s3:Get*` will be kept.
+3. If the shrink process finds a smaller wildcard that replaces the existing one. For instance if you input `s3:GetObject*`, but during the shrink process iam-shrink finds is valid `s3:Get*`, `s3:GetObject*` will be removed.
+
+## Removing Preexisting Wildcards
+
+If you want to remove all existing wildcards from you policy you can use [iam-expand](https://github.com/cloud-copilot/iam-expand) before using iam-shrink.
+
+```bash
+curl "https://government-secrets.s3.amazonaws.com/secret-policy.json" | iam-expand | iam-shrink
+```
+
 ## Use in Browser
 
 [https://iam.cloudcopilot.io/tools/iam-shrink](https://iam.cloudcopilot.io/tools/iam-shrink)
