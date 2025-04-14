@@ -1,3 +1,10 @@
+## [0.1.13](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.12...v0.1.13) (2025-04-14)
+
+
+### Features
+
+* Add a --version argument to the CLI ([dfda060](https://github.com/cloud-copilot/iam-shrink/commit/dfda060125e5ebf9098423acabb6ba4ae3588a2e))
+
 ## [0.1.12](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.11...v0.1.12) (2025-04-14)
 
 
