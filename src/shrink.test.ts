@@ -1,5 +1,5 @@
 import { iamActionDetails } from '@cloud-copilot/iam-data'
-import { expandIamActions } from '@cloud-copilot/iam-expand'
+import { expandIamActions, matchesAnyAction } from '@cloud-copilot/iam-expand'
 import { beforeEach } from 'node:test'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -80,7 +80,7 @@ describe('shrink.ts', () => {
       expect(result).toEqual(['*Object*'])
     })
 
-    it('should not overconsolidate in the middle', () => {
+    it('should not over consolidate in the middle', () => {
       //Given the wildcard actions
       const actions = [
         'Delete*Tagging',
@@ -104,6 +104,25 @@ describe('shrink.ts', () => {
           'Put*Tagging'
         ].sort()
       )
+    })
+
+    it('should consolidate multiple patterns', () => {
+      //Given a list of wildcard actions
+      const actions = [
+        's3:List*',
+        's3:ListB*',
+        's3:ListBu*',
+        's3:ListBuc*',
+        's3:ListBuck*',
+        's3:ListBucke*',
+        's3:ListBucket*'
+      ]
+
+      //When we consolidate the actions
+      const result = consolidateWildcardPatterns(actions)
+
+      //Then we should get an array of consolidated actions
+      expect(result.sort()).toEqual(['s3:List*'].sort())
     })
   })
 
@@ -345,7 +364,7 @@ describe('shrink.ts', () => {
       const undesiredActions = ['GetObjectAcl', 'PutObjectTagging']
 
       //When we shrink the actions
-      const result = shrinkIteration(actions, undesiredActions, false)
+      const result = shrinkIteration(actions, undesiredActions, new Set(), false)
 
       //Then we should get the reduced actions
       expect(result).toEqual([
@@ -368,7 +387,7 @@ describe('shrink.ts', () => {
       const undesiredActions = ['GetObjectAcl', 'PutObjectTagging']
 
       //When we shrink the actions
-      const result = shrinkIteration(actions, undesiredActions, true)
+      const result = shrinkIteration(actions, undesiredActions, new Set(), true)
 
       //Then we should get the reduced actions
       expect(result).toEqual(['PutObjectTagging', 'Get*Tagging', '*Version*'])
@@ -388,7 +407,7 @@ describe('shrink.ts', () => {
       const possibleActions = actions.slice(0)
 
       //When we shrink the actions
-      const result = shrinkResolvedList(actions, possibleActions, Infinity)
+      const result = shrinkResolvedList(actions, possibleActions, new Set(), Infinity)
 
       //Then we should get a wildcard
       expect(result).toEqual(['*'])
@@ -413,7 +432,7 @@ describe('shrink.ts', () => {
       ]
 
       //When we shrink the actions
-      const result = shrinkResolvedList(actions, possibleActions, 2)
+      const result = shrinkResolvedList(actions, possibleActions, new Set(), 2)
 
       //Then we should get the reduced actions
       expect(result.sort()).toEqual(['*Tagging', 'Get*VersionAcl'])
@@ -438,7 +457,7 @@ describe('shrink.ts', () => {
       ]
 
       //When we shrink the actions
-      const result = shrinkResolvedList(actions, possibleActions, Infinity)
+      const result = shrinkResolvedList(actions, possibleActions, new Set(), Infinity)
 
       //Then we should get the reduced actions
       expect(result.sort()).toEqual(['*Tagging', '*VersionAcl'])
@@ -585,7 +604,7 @@ describe('shrink.ts', () => {
       expect(result).toEqual(['*'])
     })
 
-    it('should not return an all actions wildcard if one is provided and all accessLevels are reducible', async () => {
+    it('should return an all actions wildcard if one is provided and all accessLevels are reducible', async () => {
       //Given a list of actions that includes a global wildcard
       const actions = ['*', 's3:GetObjectTagging', 's3:PutObjectTagging']
 
@@ -600,7 +619,7 @@ describe('shrink.ts', () => {
       const result = await shrink(actions, { levels: ['read'] })
 
       //Then we should get back the single wildcard
-      expect(result.length > 1).toBe(true)
+      expect(result).toEqual(['*'])
     })
 
     it('should return an all actions wildcard if a string of multiple asterisks is included', async () => {
@@ -663,6 +682,180 @@ describe('shrink.ts', () => {
           's3:PutObjectVersionAcl',
           's3:PutObjectVersions'
         ].sort()
+      )
+    })
+
+    it('should leave input wildcards from the original in place', async () => {
+      //Given a list of actions with input wildcards
+      const actions = [
+        's3:GetObjectTagging',
+        's3:PutObjectTagging',
+        's3:GetBucketTagging',
+        's3:GetObjectVersionAcl',
+        's3:List*'
+      ]
+
+      //and the wildcard matches an action
+      vi.mocked(matchesAnyAction).mockResolvedValue(true)
+
+      //When shrink is called
+      const result = await shrink(actions, { iterations: 1 })
+
+      //Then we should get the reduced actions with input wildcards in place
+      expect(result.sort()).toEqual(['s3:Get*', 's3:List*', 's3:PutObjectTagging'].sort())
+    })
+
+    it('should remove input wildcards that match no existing actions', async () => {
+      //Given a list of actions with input wildcards that don't match any existing actions
+      const actions = [
+        's3:GetObjectTagging',
+        's3:GetObject',
+        's3:GetObjectVersionAcl',
+        's3:GetObjectVersions',
+        's3:PutObjectTagging',
+        's3:PutObject',
+        's3:PutObjectVersionAcl',
+        's3:PutObjectVersions',
+        's3:GetBucketTagging',
+        's3:GetObjectVersionAcl',
+        's3:ListAllMyBuckets',
+        's3:ListBucket',
+        's3:ListBucketVersions',
+        's3:*NonExistent*'
+      ]
+      //and the wildcard matches no actions
+      vi.mocked(matchesAnyAction).mockResolvedValue(false)
+      mockExpandIamActions.mockImplementation(async (actions: string | string[]) => {
+        return [actions].flat().filter((action) => action !== 's3:*NonExistent*')
+      })
+
+      //When shrink is called
+      const result = await shrink(actions, { iterations: 1, levels: ['list', 'read'] })
+
+      //Then we should get the reduced actions with input wildcards removed
+      expect(result.sort()).toEqual(
+        [
+          's3:Get*',
+          's3:ListAllMyBuckets',
+          's3:ListBucket',
+          's3:ListBucketVersions',
+          's3:PutObject',
+          's3:PutObjectTagging',
+          's3:PutObjectVersionAcl',
+          's3:PutObjectVersions'
+        ].sort()
+      )
+    })
+
+    it('should remove input wildcards that are redundant', async () => {
+      //Given a list of actions with input wildcards
+      const actions = [
+        's3:GetObjectTagging',
+        's3:PutObjectTagging',
+        's3:GetBucketTagging',
+        's3:GetObjectVersionAcl',
+        's3:List*',
+        's3:ListB*',
+        's3:ListBu*',
+        's3:ListBuc*',
+        's3:ListBuck*',
+        's3:ListBucke*',
+        's3:ListBucket*'
+      ]
+
+      //and the wildcard matches an action
+      vi.mocked(matchesAnyAction).mockResolvedValue(true)
+
+      //When shrink is called
+      const result = await shrink(actions, { iterations: 1 })
+
+      //Then we should get the reduced actions with input wildcards in place
+      expect(result.sort()).toEqual(['s3:Get*', 's3:List*', 's3:PutObjectTagging'].sort())
+    })
+
+    it('should consolidate duplicate wildcards, even if that level is ignored', async () => {
+      //Given a list of actions with List wildcards
+      const actions = [
+        's3:GetObjectTagging',
+        's3:PutObjectTagging',
+        's3:GetBucketTagging',
+        's3:GetObjectVersionAcl',
+        's3:List*',
+        's3:ListB*',
+        's3:ListBu*',
+        's3:ListBuc*',
+        's3:ListBuck*',
+        's3:ListBucke*',
+        's3:ListBucket*'
+      ]
+
+      //and the wildcards match an action
+      vi.mocked(matchesAnyAction).mockResolvedValue(true)
+      mockExpandIamActions.mockImplementation(async (implActions: string | string[]) => {
+        return [
+          's3:GetObjectTagging',
+          's3:PutObjectTagging',
+          's3:GetBucketTagging',
+          's3:GetObjectVersionAcl',
+          's3:ListBucket'
+        ]
+      })
+      mockIamActionDetails.mockImplementation(async (service: string, action: string) => {
+        if (action.startsWith('Get')) {
+          return { accessLevel: 'Read' }
+        }
+        if (action.startsWith('Put')) {
+          return { accessLevel: 'Write' }
+        }
+        if (action.startsWith('List')) {
+          return { accessLevel: 'List' }
+        }
+        return { accessLevel: 'other' } as any
+      })
+
+      //When shrink is called
+      const result = await shrink(actions, { iterations: 1, levels: ['write'] })
+
+      //Then we should get the reduced actions with existing input wildcards in place
+      expect(result.sort()).toEqual(
+        [
+          's3:GetBucketTagging',
+          's3:GetObjectTagging',
+          's3:GetObjectVersionAcl',
+          's3:List*',
+          's3:Put*'
+        ].sort()
+      )
+    })
+
+    it('should leave input wildcards no matter how ugly', async () => {
+      //Given a list of actions with input wildcards
+      const actions = [
+        's3:GetObjectTagging',
+        's3:PutObjectTagging',
+        's3:GetBucketTagging',
+        's3:GetObjectVersionAcl',
+        's3:List*',
+        's3:*t*Object*',
+        's3:CreateMultiRegionAccessPoint'
+      ]
+
+      //and the wildcard matches an action
+      vi.mocked(matchesAnyAction).mockResolvedValue(true)
+
+      mockExpandIamActions.mockImplementation(async (implActions: string | string[]) => {
+        if (implActions == 's3:*') {
+          return [...actions, 's3:CreateAccessGrantsInstance']
+        }
+        return actions
+      })
+
+      //When shrink is called
+      const result = await shrink(actions, { iterations: 1 })
+
+      //Then we should get the reduced actions with input wildcards in place
+      expect(result.sort()).toEqual(
+        ['s3:List*', 's3:*t*Object*', 's3:Create*Point', 's3:GetBucketTagging'].sort()
       )
     })
   })
