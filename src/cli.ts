@@ -2,7 +2,7 @@
 
 import { parseCliArguments } from '@cloud-copilot/cli'
 import { iamDataUpdatedAt, iamDataVersion } from '@cloud-copilot/iam-data'
-import { convertNumberOfIterations, parseStdIn } from './cli_utils.js'
+import { convertNumberOfIterations, getPackageVersion, parseStdIn } from './cli_utils.js'
 import { allActionAccessLevels, shrink, ShrinkOptions } from './shrink.js'
 
 const dataPackage = '@cloud-copilot/iam-data'
@@ -20,6 +20,7 @@ async function shrinkAndPrint(actions: string[], shrinkOptions: Partial<ShrinkOp
 }
 
 async function run() {
+  const iamShrinkVersion = await getPackageVersion()
   const cli = parseCliArguments(
     'iam-shrink',
     {},
@@ -52,14 +53,15 @@ async function run() {
         type: 'number'
       },
       showDataVersion: {
-        character: 'v',
+        character: 'd',
         description: 'Print the version of the iam-data package being used and exit',
         type: 'boolean'
       }
     },
     {
       operandsName: 'action',
-      allowOperandsFromStdin: true
+      allowOperandsFromStdin: true,
+      version: iamShrinkVersion
     }
   )
 

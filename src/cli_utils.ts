@@ -1,4 +1,5 @@
 import { readStdin } from '@cloud-copilot/cli'
+import { readPackageFile } from './readPackageFile.js'
 import { ShrinkOptions } from './shrink.js'
 import { shrinkJsonDocument } from './shrink_file.js'
 
@@ -45,4 +46,15 @@ export async function parseStdIn(
   const lines = data.split('\n')
   const actions = lines.flatMap((line) => extractActionsFromLineOfInput(line))
   return { strings: actions }
+}
+
+/**
+ * Get the package version of iam-shrink being used
+ *
+ * @returns the package version
+ */
+export async function getPackageVersion(): Promise<string> {
+  const packageData = await readPackageFile(['package.json'])
+  const packageInfo = JSON.parse(packageData)
+  return packageInfo.version
 }
