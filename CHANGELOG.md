@@ -1,3 +1,10 @@
+## [0.1.12](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.11...v0.1.12) (2025-04-14)
+
+
+### Features
+
+* Retain existing wildcards from input ([5f7fac8](https://github.com/cloud-copilot/iam-shrink/commit/5f7fac8369d1b233fddec95beb668dd3df4e9c39))
+
 ## [0.1.11](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.10...v0.1.11) (2025-04-12)
 
 ## [0.1.10](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.9...v0.1.10) (2025-04-10)
