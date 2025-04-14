@@ -773,7 +773,7 @@ describe('shrink.ts', () => {
       expect(result.sort()).toEqual(['s3:Get*', 's3:List*', 's3:PutObjectTagging'].sort())
     })
 
-    it('should should consolidate duplicate wildcards, even if that level is ignored', async () => {
+    it('should consolidate duplicate wildcards, even if that level is ignored', async () => {
       //Given a list of actions with List wildcards
       const actions = [
         's3:GetObjectTagging',
