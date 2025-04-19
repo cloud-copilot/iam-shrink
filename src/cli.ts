@@ -2,7 +2,12 @@
 
 import { parseCliArguments } from '@cloud-copilot/cli'
 import { iamDataUpdatedAt, iamDataVersion } from '@cloud-copilot/iam-data'
-import { convertNumberOfIterations, getPackageVersion, parseStdIn } from './cli_utils.js'
+import {
+  convertLevels,
+  convertNumberOfIterations,
+  getPackageVersion,
+  parseStdIn
+} from './cli_utils.js'
 import { allActionAccessLevels, shrink, ShrinkOptions } from './shrink.js'
 
 const dataPackage = '@cloud-copilot/iam-data'
@@ -77,7 +82,11 @@ async function run() {
 
   const actionStrings = cli.operands
 
-  const shrinkArgs = { ...cli.args, iterations: convertNumberOfIterations(cli.args.iterations) }
+  const shrinkArgs = {
+    ...cli.args,
+    iterations: convertNumberOfIterations(cli.args.iterations),
+    levels: convertLevels(cli.args.levels)
+  }
   if (shrinkArgs.iterations === undefined) {
     delete shrinkArgs.iterations
   }

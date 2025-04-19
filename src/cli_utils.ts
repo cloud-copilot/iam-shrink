@@ -1,6 +1,6 @@
 import { readStdin } from '@cloud-copilot/cli'
 import { readPackageFile } from './readPackageFile.js'
-import { ShrinkOptions } from './shrink.js'
+import { ActionAccessLevel, allActionAccessLevels, ShrinkOptions } from './shrink.js'
 import { shrinkJsonDocument } from './shrink_file.js'
 
 interface CliOptions extends ShrinkOptions {
@@ -14,6 +14,14 @@ export function convertNumberOfIterations(iterations: number | undefined): numbe
   } else {
     return iterations
   }
+}
+
+export function convertLevels(levels: ActionAccessLevel[]): ActionAccessLevel[] {
+  if (levels === undefined || levels.length === 0) {
+    levels = allActionAccessLevels
+  }
+
+  return levels
 }
 
 const actionPattern = /\:?([a-zA-Z0-9-]+:[a-zA-Z0-9*]+)/g
