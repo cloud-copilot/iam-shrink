@@ -1,3 +1,10 @@
+## [0.1.16](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.15...v0.1.16) (2025-04-19)
+
+
+### Features
+
+* Change default API behavior. When an empty array of levels is passed, no actions are shrunk. Default CLI remains to shrink all access levels when none are passed. ([cf15b06](https://github.com/cloud-copilot/iam-shrink/commit/cf15b06ac1f855314c26206a6b82cf3edcac4657))
+
 ## [0.1.15](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.14...v0.1.15) (2025-04-19)
 
 
