@@ -1,3 +1,10 @@
+## [0.1.15](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.14...v0.1.15) (2025-04-19)
+
+
+### Features
+
+* Export shrink option types ([eaba0dc](https://github.com/cloud-copilot/iam-shrink/commit/eaba0dcd1e5d3bb5b684f9f01f32b28d2b9b27ff))
+
 ## [0.1.14](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.13...v0.1.14) (2025-04-19)
 
 ## [0.1.13](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.12...v0.1.13) (2025-04-14)
