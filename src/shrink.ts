@@ -53,9 +53,6 @@ export async function shrink(
 ): Promise<string[]> {
   //Check for an all actions wildcard
   const options = { ...defaultOptions, ...shrinkOptions }
-  if (options.levels.length === 0) {
-    options.levels = allActionAccessLevels
-  }
   const reducibleAccessLevelsSet = new Set(options.levels)
 
   const wildCard = desiredPatterns.find((pattern) => collapseAsterisks(pattern) === '*')

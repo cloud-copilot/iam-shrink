@@ -566,10 +566,60 @@ describe('shrink.ts', () => {
       })
 
       //When shrink is called
-      const result = await shrink(actions, { levels: [] })
+      const result = await shrink(actions, {})
 
       //Then we should get the reduced actions
       expect(result).toEqual(['s3:Get*VersionAcl', 's3:*Tagging'].sort())
+    })
+
+    it('should shrink nothing if levels is an empty array', async () => {
+      //Given a list of actions
+      const actions = [
+        's3:GetObjectTagging',
+        's3:PutObjectTagging',
+        's3:GetBucketTagging',
+        's3:GetObjectVersionAcl'
+      ]
+
+      //And a set of available actions
+      mockExpandIamActions.mockImplementation(async (actions: string | string[]) => {
+        if (actions == 's3:*') {
+          return [
+            's3:GetObjectTagging',
+            's3:PutObjectTagging',
+            's3:GetBucketTagging',
+            's3:GetObjectVersionAcl',
+            's3:GetObjectAcl',
+            's3:GetObjectVersion'
+          ]
+        }
+
+        return [
+          's3:GetObjectTagging',
+          's3:PutObjectTagging',
+          's3:GetBucketTagging',
+          's3:GetObjectVersionAcl'
+        ]
+      })
+
+      mockIamActionDetails.mockImplementation(async (service: string, action: string) => {
+        if (action.startsWith('Get')) {
+          return { accessLevel: 'Read' }
+        }
+        if (action.startsWith('Put')) {
+          return { accessLevel: 'Write' }
+        }
+        if (action.startsWith('List')) {
+          return { accessLevel: 'List' }
+        }
+        return { accessLevel: 'other' } as any
+      })
+
+      //When shrink is called
+      const result = await shrink(actions, { levels: [] })
+
+      //Then we should get the reduced actions
+      expect(result).toEqual(actions.sort())
     })
 
     it('should throw an error if the shrink does not validate', async () => {
