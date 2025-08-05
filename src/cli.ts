@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 
-import { parseCliArguments } from '@cloud-copilot/cli'
+import {
+  booleanArgument,
+  enumArrayArgument,
+  numberArgument,
+  parseCliArguments
+} from '@cloud-copilot/cli'
 import { iamDataUpdatedAt, iamDataVersion } from '@cloud-copilot/iam-data'
 import {
   convertLevels,
@@ -25,48 +30,45 @@ async function shrinkAndPrint(actions: string[], shrinkOptions: Partial<ShrinkOp
 }
 
 async function run() {
-  const iamShrinkVersion = await getPackageVersion()
-  const cli = parseCliArguments(
+  const cli = await parseCliArguments(
     'iam-shrink',
     {},
     {
-      removeSids: {
-        type: 'boolean',
+      removeSids: booleanArgument({
         description: 'Remove Sid fields from the policy statements',
         character: 's'
-      },
-      removeWhitespace: {
-        type: 'boolean',
+      }),
+      removeWhitespace: booleanArgument({
         description: 'Remove whitespace from the policy output',
         character: 'w'
-      },
-      iterations: {
-        type: 'number',
+      }),
+      iterations: numberArgument({
         description:
           'How many iterations of shrinking should be executed, defaults to 2; zero or less means no limit',
-        values: 'single'
-      },
-      levels: {
-        type: 'enum',
+        defaultValue: 2
+      }),
+      levels: enumArrayArgument({
         description: 'The access levels to reduce in the policy, defaults to all levels',
-        values: 'multiple',
-        validValues: allActionAccessLevels
-      },
-      readWaitMs: {
-        description: 'Milliseconds to wait for the first byte from stdin before timing out',
-        values: 'single',
-        type: 'number'
-      },
-      showDataVersion: {
+        validValues: allActionAccessLevels,
+        defaultValue: []
+      }),
+      readWaitMs: numberArgument({
+        description: 'Milliseconds to wait for the first byte from stdin before timing out'
+      }),
+      showDataVersion: booleanArgument({
         character: 'd',
-        description: 'Print the version of the iam-data package being used and exit',
-        type: 'boolean'
-      }
+        description: 'Print the version of the iam-data package being used and exit'
+      })
     },
     {
       operandsName: 'action',
       allowOperandsFromStdin: true,
-      version: iamShrinkVersion
+      version: {
+        currentVersion() {
+          return getPackageVersion()
+        },
+        checkForUpdates: '@cloud-copilot/iam-shrink'
+      }
     }
   )
 

@@ -1,5 +1,5 @@
 import { readStdin } from '@cloud-copilot/cli'
-import { readPackageFile } from './readPackageFile.js'
+import { getPackageFileReader } from './readPackageFile.js'
 import { ActionAccessLevel, allActionAccessLevels, ShrinkOptions } from './shrink.js'
 import { shrinkJsonDocument } from './shrink_file.js'
 
@@ -62,7 +62,7 @@ export async function parseStdIn(
  * @returns the package version
  */
 export async function getPackageVersion(): Promise<string> {
-  const packageData = await readPackageFile(['package.json'])
+  const packageData = await getPackageFileReader().readFile(['package.json'])
   const packageInfo = JSON.parse(packageData)
   return packageInfo.version
 }
