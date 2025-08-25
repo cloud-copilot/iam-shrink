@@ -1,3 +1,10 @@
+## [0.1.33](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.32...v0.1.33) (2025-08-25)
+
+
+### Features
+
+* Upgrade iam-data ([28acb59](https://github.com/cloud-copilot/iam-shrink/commit/28acb59ae86d1d0fa559b5b8815ac83a0651bc00))
+
 ## [0.1.32](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.31...v0.1.32) (2025-08-25)
 
 
