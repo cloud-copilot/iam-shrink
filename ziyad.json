@@ -1,0 +1,55 @@
+{
+  "Version": "2012-10-17",
+  "Statement": {
+    "Effect": "Deny",
+    "Action": [
+      "iam:attachgrouppolicy",
+      "iam:attachrolepolicy",
+      "iam:attachuserpolicy",
+      "iam:createaccesskey",
+      "iam:createaccountalias",
+      "iam:creategroup",
+      "iam:createinstanceprofile",
+      "iam:createloginprofile",
+      "iam:createopenidconnectprovider",
+      "iam:createpolicy",
+      "iam:createpolicyversion",
+      "iam:createrole",
+      "iam:createsamlprovider",
+      "iam:createservicelinkedrole",
+      "iam:createservicespecificcredential",
+      "iam:createuser",
+      "iam:createvirtualmfadevice",
+      "iam:detachgrouppolicy",
+      "iam:detachrolepolicy",
+      "iam:detachuserpolicy",
+      "iam:updateaccesskey",
+      "iam:updateaccountemailaddress",
+      "iam:updateaccountname",
+      "iam:updateaccountpasswordpolicy",
+      "iam:updateassumerolepolicy",
+      "iam:updatecloudfrontpublickey",
+      "iam:updategroup",
+      "iam:updateloginprofile",
+      "iam:updateopenidconnectproviderthumbprint",
+      "iam:updaterole",
+      "iam:updateroledescription",
+      "iam:updatesamlprovider",
+      "iam:updatesshpublickey",
+      "iam:updateservercertificate",
+      "iam:updateservicespecificcredential",
+      "iam:updatesigningcertificate",
+      "iam:updateuser",
+      "iam:Delete*",
+      "iam:Put*",
+      "iam:List*",
+      "iam:ListG*"
+    ],
+    "Resource": ["arn:aws:iam::111222333444:role/IDC", "arn:aws:iam::111222333444:policy/Deny-S3"],
+    "Condition": {
+      "ArnNotEquals": {
+        "aws:PrincipalArn": "arn:aws:iam::111222333444:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_abcd"
+      }
+    }
+  }
+}
