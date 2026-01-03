@@ -13,7 +13,7 @@ import {
   getPackageVersion,
   parseStdIn
 } from './cli_utils.js'
-import { allActionAccessLevels, shrink, ShrinkOptions } from './shrink.js'
+import { ActionAccessLevel, allActionAccessLevels, shrink, ShrinkOptions } from './shrink.js'
 
 const dataPackage = '@cloud-copilot/iam-data'
 
@@ -87,7 +87,7 @@ async function run() {
   const shrinkArgs = {
     ...cli.args,
     iterations: convertNumberOfIterations(cli.args.iterations),
-    levels: convertLevels(cli.args.levels)
+    levels: convertLevels(cli.args.levels as ActionAccessLevel[])
   }
   if (shrinkArgs.iterations === undefined) {
     delete shrinkArgs.iterations
