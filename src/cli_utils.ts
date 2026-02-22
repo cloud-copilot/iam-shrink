@@ -1,6 +1,6 @@
 import { readStdin } from '@cloud-copilot/cli'
 import { getPackageFileReader } from './readPackageFile.js'
-import { ActionAccessLevel, allActionAccessLevels, ShrinkOptions } from './shrink.js'
+import { type ActionAccessLevel, allActionAccessLevels, type ShrinkOptions } from './shrink.js'
 import { shrinkJsonDocument } from './shrink_file.js'
 
 interface CliOptions extends ShrinkOptions {
