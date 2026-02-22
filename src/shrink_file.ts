@@ -1,4 +1,4 @@
-import { ShrinkOptions, shrink } from './shrink.js'
+import { type ShrinkOptions, shrink } from './shrink.js'
 
 /**
  * Takes any JSON document and shrinks any Action or NotAction array of strings in the document.

@@ -1,4 +1,4 @@
-import { createPackageFileReader, PackageFileReader } from '@cloud-copilot/cli'
+import { createPackageFileReader, type PackageFileReader } from '@cloud-copilot/cli'
 
 let levels = 2
 if (__filename.includes('src')) {

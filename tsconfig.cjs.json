@@ -5,8 +5,11 @@
   "exclude": ["**/*.test.ts"],
 
   "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
     "rootDir": "src",
     "outDir": "dist/cjs",
-    "skipLibCheck": false
+    "skipLibCheck": false,
+    "verbatimModuleSyntax": false
   }
 }

@@ -13,7 +13,12 @@ import {
   getPackageVersion,
   parseStdIn
 } from './cli_utils.js'
-import { ActionAccessLevel, allActionAccessLevels, shrink, ShrinkOptions } from './shrink.js'
+import {
+  type ActionAccessLevel,
+  allActionAccessLevels,
+  shrink,
+  type ShrinkOptions
+} from './shrink.js'
 
 const dataPackage = '@cloud-copilot/iam-data'
 
