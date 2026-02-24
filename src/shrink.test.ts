@@ -3,7 +3,7 @@ import { expandIamActions, matchesAnyAction } from '@cloud-copilot/iam-expand'
 import { beforeEach } from 'node:test'
 import { describe, expect, it, vi } from 'vitest'
 import {
-  ActionAccessLevel,
+  type ActionAccessLevel,
   consolidateWildcardPatterns,
   countSubstrings,
   findCommonSequences,
