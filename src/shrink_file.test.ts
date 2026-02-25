@@ -29,7 +29,7 @@ describe('shrinkJsonDocument', () => {
   })
 
   it('shrinks an array of NotAction nested in the document', async () => {
-    //Given an object with an array of NotAction nexted in the document
+    //Given an object with an array of NotAction nested in the document
     const document = {
       statements: [
         {
