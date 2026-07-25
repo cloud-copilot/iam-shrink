@@ -1,3 +1,5 @@
+## [0.1.84](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.83...v0.1.84) (2026-07-25)
+
 ## [0.1.83](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.82...v0.1.83) (2026-07-18)
 
 ## [0.1.82](https://github.com/cloud-copilot/iam-shrink/compare/v0.1.81...v0.1.82) (2026-07-11)
